@@ -17,13 +17,14 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
 
-    - name: Unzip and Find Android Project
+    - name: Force Extract Phone Zip
       run: |
-        unzip -o *.zip
-        echo "Searching for build.gradle..."
+        sudo apt-get update && sudo apt-get install -y p7zip-full
+        7z x *.zip -y || unzip -o *.zip
+        echo "Searching for Android files..."
         GRADLE_PATH=$(find . -name "build.gradle" -not -path "*/api-server/*" | head -n 1)
         if [ -z "$GRADLE_PATH" ]; then
-          echo "Error: build.gradle not found anywhere in the zip!"
+          echo "Error: build.gradle not found anywhere!"
           exit 1
         fi
         ANDROID_DIR=$(dirname "$GRADLE_PATH")
