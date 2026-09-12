@@ -17,19 +17,29 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
 
-    - name: Unzip Project Files
+    - name: Unzip and Find Android Project
       run: |
         unzip -o *.zip
-        ls -la
+        echo "Searching for build.gradle..."
+        GRADLE_PATH=$(find . -name "build.gradle" -not -path "*/api-server/*" | head -n 1)
+        if [ -z "$GRADLE_PATH" ]; then
+          echo "Error: build.gradle not found anywhere in the zip!"
+          exit 1
+        fi
+        ANDROID_DIR=$(dirname "$GRADLE_PATH")
+        echo "Found android project directory at: $ANDROID_DIR"
+        echo "ANDROID_DIR_PATH=$ANDROID_DIR" >> $GITHUB_ENV
 
     - name: Create Production Keystore
       run: |
-        keytool -genkeypair -v -keystore android/app/coolvpn.keystore -alias ${{ secrets.COOLVPN_KEY_ALIAS }} -keypass ${{ secrets.COOLVPN_KEY_PASSWORD }} -storepass ${{ secrets.COOLVPN_STORE_PASSWORD }} -dname "CN=Nashash, O=CoolVPN, C=US" -keyalg RSA -keysize 2048 -validity 10000
+        keytool -genkeypair -v -keystore ${{ env.ANDROID_DIR_PATH }}/app/coolvpn.keystore -alias ${{ secrets.COOLVPN_KEY_ALIAS }} -keypass ${{ secrets.COOLVPN_KEY_PASSWORD }} -storepass ${{ secrets.COOLVPN_STORE_PASSWORD }} -dname "CN=Nashash, O=CoolVPN, C=US" -keyalg RSA -keysize 2048 -validity 10000
       continue-on-error: true
 
     - name: Build Global Production APK
       run: |
-        cd android && chmod +x gradlew && ./gradlew assembleRelease
+        cd ${{ env.ANDROID_DIR_PATH }}
+        chmod +x gradlew
+        ./gradlew assembleRelease
       env:
         COOLVPN_KEY_ALIAS: ${{ secrets.COOLVPN_KEY_ALIAS }}
         COOLVPN_KEY_PASSWORD: ${{ secrets.COOLVPN_KEY_PASSWORD }}
@@ -39,5 +49,5 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: CoolVPN-Universal-Release
-        path: android/app/build/outputs/apk/release/app-release.apk
+        path: "**/build/outputs/apk/release/app-release.apk"
         
