@@ -20,9 +20,7 @@ jobs:
     - name: Unzip Project Files
       run: |
         unzip -o *.zip
-        if [ -d "coolvpn-pro-project" ]; then
-          mv coolvpn-pro-project/* .
-        fi
+        ls -la
 
     - name: Create Production Keystore
       run: |
@@ -31,7 +29,7 @@ jobs:
 
     - name: Build Global Production APK
       run: |
-        cd android && ./gradlew assembleRelease
+        cd android && chmod +x gradlew && ./gradlew assembleRelease
       env:
         COOLVPN_KEY_ALIAS: ${{ secrets.COOLVPN_KEY_ALIAS }}
         COOLVPN_KEY_PASSWORD: ${{ secrets.COOLVPN_KEY_PASSWORD }}
