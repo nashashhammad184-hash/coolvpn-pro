@@ -1,0 +1,4 @@
+CoolVPN Pro Launch Kit:
+- Privacy Policy Text: Enforced No-Logs policy ready for all store review systems.
+- Foreground Service Status: pre-configured for specialUse (Android 14+ compliant).
+- Ad Monetization Network: Universal Ad ID ready.
