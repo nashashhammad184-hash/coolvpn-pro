@@ -1,0 +1,45 @@
+name: Build Android App
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+
+    - name: Unzip Project Files
+      run: |
+        unzip -o *.zip
+        if [ -d "coolvpn-pro-project" ]; then
+          mv coolvpn-pro-project/* .
+        fi
+
+    - name: Create Production Keystore
+      run: |
+        keytool -genkeypair -v -keystore android/app/coolvpn.keystore -alias ${{ secrets.COOLVPN_KEY_ALIAS }} -keypass ${{ secrets.COOLVPN_KEY_PASSWORD }} -storepass ${{ secrets.COOLVPN_STORE_PASSWORD }} -dname "CN=Nashash, O=CoolVPN, C=US" -keyalg RSA -keysize 2048 -validity 10000
+      continue-on-error: true
+
+    - name: Build Global Production APK
+      run: |
+        cd android && ./gradlew assembleRelease
+      env:
+        COOLVPN_KEY_ALIAS: ${{ secrets.COOLVPN_KEY_ALIAS }}
+        COOLVPN_KEY_PASSWORD: ${{ secrets.COOLVPN_KEY_PASSWORD }}
+        COOLVPN_STORE_PASSWORD: ${{ secrets.COOLVPN_STORE_PASSWORD }}
+
+    - name: Upload Store Ready APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: CoolVPN-Universal-Release
+        path: android/app/build/outputs/apk/release/app-release.apk
