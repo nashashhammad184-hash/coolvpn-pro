@@ -1,0 +1,23 @@
+workflows:
+  react-native-android:
+    name: React Native Android Build
+    max_build_duration: 60
+    instance_type: mac_mini_m1
+    environment:
+      node: 20
+    triggering:
+      events:
+        - push
+      branches:
+        - main
+    scripts:
+      - name: Install dependencies
+        script: |
+          cd coolvpn-pro-project && npm install
+      - name: Build Android APK and AAB
+        script: |
+          cd coolvpn-pro-project/android && ./gradlew assembleRelease bundleRelease
+    artifacts:
+      - coolvpn-pro-project/android/app/build/outputs/apk/release/*.apk
+      - coolvpn-pro-project/android/app/build/outputs/bundle/release/*.aab
+      
